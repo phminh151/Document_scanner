@@ -2,24 +2,34 @@ import cv2
 import os
 import numpy as np
 
-for i in os.listdir('Images'):
-    image = cv2.imread('Images/'+i)
-    image = cv2.resize(image,(500,500))
+for i in os.listdir('test'):
+    image = cv2.imread('test/'+i)
+    # image = cv2.resize(image,(500,500))
     # Grayscale
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     # Blur 
-    gray = cv2.GaussianBlur(gray, (5,5),0)
+    gray = cv2.GaussianBlur(gray, (7,7),0)
     gray = cv2.medianBlur(gray,5)
     # Adaptive Thresh and edge detection
-    thresh = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,31,3)
-    cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # thresh = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,31,3)
+    # cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     edge = cv2.Canny(gray,50,150)
     kernel = np.ones((3,3),np.uint8)
     edge = cv2.dilate(edge,kernel,iterations=1)
+    # for row in range(edge.shape[0]):
+    # # Find the left-most and right-most pixel in the sqare
+    #     start, stop = 0, 0
+    #     for col in range(edge.shape[1]):
+    #         # Find the left-most
+    #         if edge[row,col] != 0 and start == 0: start = col, row
+    #         # Find the right-most
+    #         if edge[row,col] != 0: stop = col, row 
+    #     # If there was a pixel in that row, connect them with a line
+    #     if start != 0:
+    #         cv2.line(edge, start, stop, 255, 1)
     try:
         # Find Biggest Contours
         cnts,_ = cv2.findContours(edge.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        sorted_contours = sorted(cnts, key=lambda ctr: (cv2.boundingRect(ctr)[1]+cv2.boundingRect(ctr)[0]*0.1))
         cnt = max(cnts, key = cv2.contourArea)
 
         # Find 4 Points for Perspective Warping
@@ -57,8 +67,11 @@ for i in os.listdir('Images'):
         cv2.circle(image, bl, 0, color=(0,0,255), thickness=5)
         cv2.circle(image, br, 0, color=(0,255,255), thickness=5)
         # Save result
-        cv2.imwrite('D:\minhvu\Octopus\output/warp_'+i,warp)
-        cv2.imwrite('D:\minhvu\Octopus\output/ori_'+i,image)
-    except:
         print(i)
+        cv2.imshow('warp.jpg',warp)
+        cv2.imshow('thresh.jpg',edge)
+        cv2.imshow('ori.jpg',image)
+        # cv2.waitKey()
+        
+    except:
         continue
